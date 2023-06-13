@@ -1,0 +1,73 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Dotbydot
+#pragma kernel Noise
+#pragma kernel LVDS
+
+RWTexture2D<float4> Result;
+
+#define PI 3.14159265359
+
+int Width;
+
+int Height;
+
+int White;
+int Black;
+
+float Time;
+
+float ColorR1;
+float ColorG1;
+float ColorB1;
+
+float ColorR2;
+float ColorG2;
+float ColorB2;
+
+float rand(float2 coordinates)
+{
+    return frac(sin(dot(coordinates, float2(12.9898, 4.1414))) * 43758.5453);
+}
+
+
+[numthreads(1, 1, 1)]
+void Dotbydot(uint3 id : SV_DispatchThreadID)
+{   
+    int sum = White + Black;
+    
+    if (((id.x % sum) > 0)  && ((id.x % sum) <= White))
+    {
+        Result[id.xy] = float4(1, 1, 1, 1);
+    }
+    else
+    {
+        Result[id.xy] = float4(0, 0, 0, 1);
+    }   
+}
+
+[numthreads(1, 1, 1)]
+void Noise(uint3 id : SV_DispatchThreadID)
+{
+    float x = id.x / Width;
+    float y = id.y / Height;
+    float2 xy = float2(x, y);
+    
+    Result[id.xy] = float4(rand(id.xy + Time + 12.9898), rand(id.xy + Time + 4.1414), rand(id.xy + Time + 1.212756), 1);
+
+}
+
+[numthreads(1, 1, 1)]
+void LVDS(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x % 2 > 0)
+    {
+        Result[id.xy] = float4(ColorR1, ColorG1, ColorB1, 1);
+    }
+    else
+    {
+        Result[id.xy] = float4(ColorR2, ColorG2, ColorB2, 1);
+    }
+    
+
+}
+
